@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit Income</title>
+</head>
+<body>
+
+<h1>Edit Income</h1>
+
+<form method="POST">
+
+    <label>Title</label><br>
+    <input type="text" name="title" value="{{ income[1] }}"><br><br>
+
+    <label>Amount</label><br>
+    <input type="number" name="amount" value="{{ income[2] }}"><br><br>
+
+    <button type="submit">Update</button>
+
+</form>
+
+</body>
+</html>

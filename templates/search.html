@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Search Results</title>
+</head>
+<body>
+
+<h1>Search Results</h1>
+
+<p>You searched for: <b>{{ keyword }}</b></p>
+
+<h2>Income</h2>
+
+<table border="1">
+<tr>
+    <th>Title</th>
+    <th>Amount</th>
+    <th>Date</th>
+    <th>Category</th>
+</tr>
+
+{% for row in income_results %}
+<tr>
+    <td>{{ row[0] }}</td>
+    <td>{{ row[1] }}</td>
+    <td>{{ row[2] }}</td>
+    <td>{{ row[3] }}</td>
+</tr>
+{% endfor %}
+</table>
+
+<br>
+
+<h2>Expense</h2>
+
+<table border="1">
+<tr>
+    <th>Title</th>
+    <th>Amount</th>
+    <th>Date</th>
+    <th>Category</th>
+</tr>
+
+{% for row in expense_results %}
+<tr>
+    <td>{{ row[0] }}</td>
+    <td>{{ row[1] }}</td>
+    <td>{{ row[2] }}</td>
+    <td>{{ row[3] }}</td>
+</tr>
+{% endfor %}
+</table>
+
+<br>
+
+<a href="/dashboard">Back to Dashboard</a>
+
+</body>
+</html>
