@@ -157,6 +157,7 @@ def edit_income(id):
     income=income
 )
 
+
 @app.route("/dashboard")
 def dashboard():
 
@@ -222,4 +223,61 @@ def dashboard():
     expense_data=expense_data
 )
 
-   
+@app.route('/set_budget', methods=['POST'])
+def set_budget():
+
+    if "user_id" not in session:
+        return redirect("/login")
+
+    user_id = session["user_id"]
+    budget = request.form["budget"]
+
+    cursor.execute(
+        """
+        INSERT INTO budget(user_id, monthly_budget)
+        VALUES(%s, %s)
+        """,
+        (user_id, budget)
+    )
+
+    db.commit()
+
+    return redirect("/dashboard") 
+
+@app.route('/search', methods=['GET'])
+def search():
+    keyword = request.args.get("keyword")
+
+    cursor.execute(
+        "SELECT title, amount, transaction_date, category FROM income WHERE title LIKE %s",
+        ("%" + keyword + "%",)
+    )
+    income_results = cursor.fetchall()
+
+    cursor.execute(
+        "SELECT title, amount, transaction_date, category FROM expense WHERE title LIKE %s",
+        ("%" + keyword + "%",)
+    )
+    expense_results = cursor.fetchall()
+
+    return render_template(
+        "search.html",
+        income_results=income_results,
+        expense_results=expense_results,
+        keyword=keyword
+    )
+
+@app.route('/prediction')
+def prediction():
+
+    cursor.execute("SELECT SUM(amount) FROM expense")
+    expense = cursor.fetchone()[0] or 0
+
+    expense = float(expense)
+
+    predicted_expense = round(expense * 1.10, 2)
+
+    return render_template(
+        "prediction.html",
+        prediction=predicted_expense
+    )
