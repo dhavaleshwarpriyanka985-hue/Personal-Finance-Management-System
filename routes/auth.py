@@ -1,7 +1,7 @@
 from flask import render_template, request, redirect, session
 from werkzeug.security import generate_password_hash, check_password_hash
 from app import app
-from database.db import cursor, db
+from database.db import db, cursor
 
 
 # -------------------- REGISTER --------------------
@@ -17,7 +17,7 @@ def register():
 
         # Check if email already exists
         cursor.execute(
-            "SELECT * FROM users WHERE email=%s",
+            "SELECT * FROM users WHERE email = ?",
             (email,)
         )
 
@@ -33,7 +33,7 @@ def register():
         cursor.execute(
             """
             INSERT INTO users(name, email, password)
-            VALUES(%s, %s, %s)
+            VALUES(?, ?, ?)
             """,
             (name, email, hashed_password)
         )
@@ -56,7 +56,7 @@ def login():
         password = request.form["password"]
 
         cursor.execute(
-            "SELECT * FROM users WHERE email=%s",
+            "SELECT * FROM users WHERE email = ?",
             (email,)
         )
 
@@ -65,11 +65,11 @@ def login():
         if user:
 
             # Verify password
-            if check_password_hash(user[3], password):
+            if check_password_hash(user["password"], password):
 
-                session["user_id"] = user[0]
-                session["user_name"] = user[1]
-                session["email"] = user[2]
+                session["user_id"] = user["id"]
+                session["user_name"] = user["name"]
+                session["email"] = user["email"]
 
                 return redirect("/dashboard")
 
@@ -90,4 +90,3 @@ def logout():
     session.clear()
 
     return redirect("/")
-

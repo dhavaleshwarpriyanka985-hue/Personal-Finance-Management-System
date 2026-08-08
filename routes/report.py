@@ -3,23 +3,31 @@ from database.db import cursor
 
 report_bp = Blueprint('report', __name__)
 
-@report_bp.route('/report')
+
+@report_bp.route('/monthly_report')
 def report():
 
     # Total Income
-    cursor.execute("SELECT SUM(amount) FROM income")
+    cursor.execute(
+        "SELECT SUM(amount) FROM income"
+    )
+
     income = cursor.fetchone()[0] or 0
 
     # Total Expense
-    cursor.execute("SELECT SUM(amount) FROM expense")
+    cursor.execute(
+        "SELECT SUM(amount) FROM expenses"
+    )
+
     expense = cursor.fetchone()[0] or 0
 
+    # Balance
     balance = income - expense
 
     # Highest Expense Category
     cursor.execute("""
         SELECT category, SUM(amount)
-        FROM expense
+        FROM expenses
         GROUP BY category
         ORDER BY SUM(amount) DESC
         LIMIT 1

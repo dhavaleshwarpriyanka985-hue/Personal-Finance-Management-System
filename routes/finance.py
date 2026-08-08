@@ -20,21 +20,18 @@ def add_income():
     transaction_date = request.form["transaction_date"]
     category = request.form["category"]
 
-    sql = """
-    INSERT INTO income
-    (user_id, title, amount, transaction_date, category)
-    VALUES (%s, %s, %s, %s, %s)
-    """
-
-    values = (
+    cursor.execute("""
+        INSERT INTO income
+        (user_id, title, amount, transaction_date, category)
+        VALUES (?, ?, ?, ?, ?)
+    """, (
         user_id,
         title,
         amount,
         transaction_date,
         category
-    )
+    ))
 
-    cursor.execute(sql, values)
     db.commit()
 
     return redirect("/dashboard")
@@ -57,21 +54,18 @@ def add_expense():
     transaction_date = request.form["transaction_date"]
     category = request.form["category"]
 
-    sql = """
-    INSERT INTO expense
-    (user_id, title, amount, transaction_date, category)
-    VALUES (%s, %s, %s, %s, %s)
-    """
-
-    values = (
+    cursor.execute("""
+        INSERT INTO expenses
+        (user_id, title, amount, transaction_date, category)
+        VALUES (?, ?, ?, ?, ?)
+    """, (
         user_id,
         title,
         amount,
         transaction_date,
         category
-    )
+    ))
 
-    cursor.execute(sql, values)
     db.commit()
 
     return redirect("/dashboard")
@@ -85,7 +79,7 @@ def add_expense():
 def delete_income(id):
 
     cursor.execute(
-        "DELETE FROM income WHERE id=%s",
+        "DELETE FROM income WHERE id=?",
         (id,)
     )
 
@@ -102,7 +96,7 @@ def delete_income(id):
 def delete_expense(id):
 
     cursor.execute(
-        "DELETE FROM expense WHERE id=%s",
+        "DELETE FROM expenses WHERE id=?",
         (id,)
     )
 
@@ -126,14 +120,13 @@ def edit_income(id):
         category = request.form["category"]
 
         cursor.execute("""
-        UPDATE income
-        SET title=%s,
-            amount=%s,
-            transaction_date=%s,
-            category=%s
-        WHERE id=%s
-        """,
-        (
+            UPDATE income
+            SET title=?,
+                amount=?,
+                transaction_date=?,
+                category=?
+            WHERE id=?
+        """, (
             title,
             amount,
             transaction_date,
@@ -146,17 +139,65 @@ def edit_income(id):
         return redirect("/dashboard")
 
     cursor.execute(
-        "SELECT * FROM income WHERE id=%s",
+        "SELECT * FROM income WHERE id=?",
         (id,)
     )
 
     income = cursor.fetchone()
 
     return render_template(
-    "edit_income.html",
-    income=income
-)
+        "edit_income.html",
+        income=income
+    )
 
+
+# ==========================
+# EDIT EXPENSE
+# ==========================
+
+@app.route('/edit_expense/<int:id>', methods=['GET', 'POST'])
+def edit_expense(id):
+
+    if request.method == "POST":
+
+        title = request.form["title"]
+        amount = request.form["amount"]
+        transaction_date = request.form["transaction_date"]
+        category = request.form["category"]
+
+        cursor.execute("""
+            UPDATE expenses
+            SET title=?,
+                amount=?,
+                transaction_date=?,
+                category=?
+            WHERE id=?
+        """, (
+            title,
+            amount,
+            transaction_date,
+            category,
+            id
+        ))
+
+        db.commit()
+
+        return redirect("/dashboard")
+
+    cursor.execute(
+        "SELECT * FROM expenses WHERE id=?",
+        (id,)
+    )
+
+    expense = cursor.fetchone()
+
+    return render_template(
+        "edit_expense.html",
+        expense=expense
+    )
+# ==========================
+# DASHBOARD
+# ==========================
 
 @app.route("/dashboard")
 def dashboard():
@@ -168,16 +209,18 @@ def dashboard():
 
     # Total Income
     cursor.execute(
-        "SELECT SUM(amount) FROM income WHERE user_id=%s",
+        "SELECT SUM(amount) FROM income WHERE user_id=?",
         (user_id,)
     )
+
     total_income = cursor.fetchone()[0] or 0
 
     # Total Expense
     cursor.execute(
-        "SELECT SUM(amount) FROM expense WHERE user_id=%s",
+        "SELECT SUM(amount) FROM expenses WHERE user_id=?",
         (user_id,)
     )
+
     total_expense = cursor.fetchone()[0] or 0
 
     balance = total_income - total_expense
@@ -186,22 +229,31 @@ def dashboard():
     cursor.execute("""
         SELECT id, title, amount, transaction_date, category
         FROM income
-        WHERE user_id=%s
+        WHERE user_id=?
     """, (user_id,))
+
     income_data = cursor.fetchall()
 
     # Expense History
     cursor.execute("""
         SELECT id, title, amount, transaction_date, category
-        FROM expense
-        WHERE user_id=%s
+        FROM expenses
+        WHERE user_id=?
     """, (user_id,))
+
     expense_data = cursor.fetchall()
 
+    # Budget
     cursor.execute(
-    "SELECT monthly_budget FROM budget WHERE user_id=%s ORDER BY id DESC LIMIT 1",
-    (user_id,)
-)
+        """
+        SELECT monthly_budget
+        FROM budget
+        WHERE user_id=?
+        ORDER BY id DESC
+        LIMIT 1
+        """,
+        (user_id,)
+    )
 
     budget = cursor.fetchone()
 
@@ -213,15 +265,20 @@ def dashboard():
     remaining_budget = budget - total_expense
 
     return render_template(
-    "dashboard.html",
-    income=total_income,
-    expense=total_expense,
-    balance=balance,
-    budget=budget,
-    remaining_budget=remaining_budget,
-    income_data=income_data,
-    expense_data=expense_data
-)
+        "dashboard.html",
+        income=total_income,
+        expense=total_expense,
+        balance=balance,
+        budget=budget,
+        remaining_budget=remaining_budget,
+        income_data=income_data,
+        expense_data=expense_data
+    )
+
+
+# ==========================
+# SET BUDGET
+# ==========================
 
 @app.route('/set_budget', methods=['POST'])
 def set_budget():
@@ -235,29 +292,47 @@ def set_budget():
     cursor.execute(
         """
         INSERT INTO budget(user_id, monthly_budget)
-        VALUES(%s, %s)
+        VALUES(?, ?)
         """,
         (user_id, budget)
     )
 
     db.commit()
 
-    return redirect("/dashboard") 
+    return redirect("/dashboard")
+
+
+# ==========================
+# SEARCH
+# ==========================
 
 @app.route('/search', methods=['GET'])
 def search():
-    keyword = request.args.get("keyword")
+
+    keyword = request.args.get("keyword", "")
+
+    search_keyword = "%" + keyword + "%"
 
     cursor.execute(
-        "SELECT title, amount, transaction_date, category FROM income WHERE title LIKE %s",
-        ("%" + keyword + "%",)
+        """
+        SELECT title, amount, transaction_date, category
+        FROM income
+        WHERE title LIKE ?
+        """,
+        (search_keyword,)
     )
+
     income_results = cursor.fetchall()
 
     cursor.execute(
-        "SELECT title, amount, transaction_date, category FROM expense WHERE title LIKE %s",
-        ("%" + keyword + "%",)
+        """
+        SELECT title, amount, transaction_date, category
+        FROM expenses
+        WHERE title LIKE ?
+        """,
+        (search_keyword,)
     )
+
     expense_results = cursor.fetchall()
 
     return render_template(
@@ -267,10 +342,18 @@ def search():
         keyword=keyword
     )
 
+
+# ==========================
+# PREDICTION
+# ==========================
+
 @app.route('/prediction')
 def prediction():
 
-    cursor.execute("SELECT SUM(amount) FROM expense")
+    cursor.execute(
+        "SELECT SUM(amount) FROM expenses"
+    )
+
     expense = cursor.fetchone()[0] or 0
 
     expense = float(expense)

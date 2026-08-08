@@ -1,11 +1,6 @@
-import mysql.connector
-from config import *
+import sqlite3
 
-db = mysql.connector.connect(
-    host=DB_HOST,
-    port=DB_PORT,
-    user=DB_USER,
-    password=DB_PASSWORD,
-    database=DB_NAME
-)
+db = sqlite3.connect("finance.db", check_same_thread=False)
+db.row_factory = sqlite3.Row
+
 cursor = db.cursor()

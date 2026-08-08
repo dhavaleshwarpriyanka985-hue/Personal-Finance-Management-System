@@ -2,9 +2,6 @@ from flask import render_template, request, session, redirect
 from app import app
 from database.db import cursor
 
-from sklearn.linear_model import LinearRegression
-import pandas as pd
-
 
 # ===========================
 # AI EXPENSE ANALYSIS
@@ -20,8 +17,8 @@ def ai_analysis():
 
     cursor.execute("""
         SELECT category, SUM(amount)
-        FROM expense
-        WHERE user_id=%s
+        FROM expenses
+        WHERE user_id=?
         GROUP BY category
     """, (user_id,))
 
@@ -36,12 +33,11 @@ def ai_analysis():
     highest = max(data, key=lambda x: x[1])
 
     message = f"""
-You spend the most on
-{highest[0]} (₹{highest[1]}).
+You spend the most on {highest[0]} (₹{highest[1]}).
 
 Suggestion:
 Try reducing your spending in this category.
-    """
+"""
 
     return render_template(
         "ai_analysis.html",
@@ -76,7 +72,7 @@ def chatbot():
             cursor.execute("""
                 SELECT SUM(amount)
                 FROM income
-                WHERE user_id=%s
+                WHERE user_id=?
             """, (user_id,))
 
             income = cursor.fetchone()[0]
@@ -94,10 +90,9 @@ def chatbot():
 
             cursor.execute("""
                 SELECT SUM(amount)
-                FROM expense
-                WHERE user_id=%s
-            """, (                user_id,
-            ))
+                FROM expenses
+                WHERE user_id=?
+            """, (user_id,))
 
             expense = cursor.fetchone()[0]
 
@@ -115,7 +110,7 @@ def chatbot():
             cursor.execute("""
                 SELECT SUM(amount)
                 FROM income
-                WHERE user_id=%s
+                WHERE user_id=?
             """, (user_id,))
 
             income = cursor.fetchone()[0]
@@ -125,8 +120,8 @@ def chatbot():
 
             cursor.execute("""
                 SELECT SUM(amount)
-                FROM expense
-                WHERE user_id=%s
+                FROM expenses
+                WHERE user_id=?
             """, (user_id,))
 
             expense = cursor.fetchone()[0]
@@ -162,8 +157,8 @@ Try these tips to save more money:
 
             cursor.execute("""
                 SELECT category, SUM(amount)
-                FROM expense
-                WHERE user_id=%s
+                FROM expenses
+                WHERE user_id=?
                 GROUP BY category
                 ORDER BY SUM(amount) DESC
                 LIMIT 1
@@ -186,6 +181,7 @@ Try these tips to save more money:
 Sorry, I don't understand that question.
 
 Try asking:
+
 • What is my income?
 • What is my expense?
 • What is my balance?
