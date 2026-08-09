@@ -36,7 +36,7 @@ python app.py
 ![Dashboard](screenshots/register.png.png)
 
 ### AI Expense Analysis
-![analysis ai](screenshots/analysis_ai.png.png)
+![analysis ai](screenshots/anaysis_ai.png.png)
 
 
 
