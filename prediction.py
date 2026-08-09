@@ -20,3 +20,4 @@ next_month = [[7]]
 prediction = model.predict(next_month)
 
 print("Predicted Expense:", prediction[0])
+
