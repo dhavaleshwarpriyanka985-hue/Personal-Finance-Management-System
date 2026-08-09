@@ -27,20 +27,19 @@ pip install -r requirements.txt
 python app.py
 
 
-## Screenshots
+## 📸 Screenshots
 
-### Home Page
+### login
+![Dashboard](screenshots/login.png.png)
 
-![Home](screenshots/home.png)
+### register
+![Dashboard](screenshots/register.png.png)
 
-### Login Page
+### AI Expense Analysis
+![AI Expense Analysis](screenshots/analysis_ai.png.png)
 
-![Login](screenshots/login.png)
 
-### Dashboard
 
-![Dashboard](screenshots/dashboard.png)
 
-### Charts
-
-![Charts](screenshots/chart.png)
+### Income and Expense
+![Income and Expense](screenshots/income&expense.png.png)
